@@ -76,10 +76,18 @@ local function load_lpeg()
 end
 
 local function split(str, lpeg)
-	if not lpeg then
-		return vim.fn.split(str, [[\zs]])
+	if lpeg then
+		return (lpeg.Ct(lpeg.C(lpeg.utfR(0, 0x10ffff)) ^ 0)):match(str)
 	end
-	return (lpeg.Ct(lpeg.C(lpeg.utfR(0, 0x10ffff)) ^ 0)):match(str)
+
+	local ok, chars = pcall(function()
+		return vim.fn.split(str, [[\zs]])
+	end)
+	if ok then
+		return chars
+	end
+
+	error("budoux.lua requires lpeg or Neovim.")
 end
 
 function budoux.parse(model, str, lpeg)
